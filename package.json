@@ -1,0 +1,23 @@
+{
+  "name": "hoikka",
+  "version": "1.0.0",
+  "description": "Svelte's north cousin",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ChristoPy/hoikka.git"
+  },
+  "keywords": [],
+  "author": "Christopher Ribeiro <christo_campiglia@hotmail.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/ChristoPy/hoikka/issues"
+  },
+  "homepage": "https://github.com/ChristoPy/hoikka#readme",
+  "devDependencies": {
+    "jest": "^26.6.3"
+  }
+}
