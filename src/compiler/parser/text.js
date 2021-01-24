@@ -1,3 +1,4 @@
+const { parse } = require('acorn')
 const { assert, isIgnorable } = require('../../utils/index.js')
 const Parser = require('./parser.js')
 
@@ -44,8 +45,33 @@ class TextParser extends Parser {
           this.lexemes[this.lexemes.length - 1].value += configuredValue
         }
       }
-      if (this.current === '{') {}
-      if (this.current === '}') {}
+      if (this.current === '{') {
+        assert(!this.binding, 'Sorry, bindings can only occur once')
+
+        this.binding = true
+        this.bindingStartedAt = this.cursor
+
+        this.lexemes.push({ type: 'binding', value: '', where: this.cursor })
+      }
+      if (this.current === '}') {
+        if (!this.binding) return
+
+        const bindingAST = parse(this.lexemes[this.lexemes.length - 1].value, {
+          sourceType: 'module',
+        })
+
+        // console.log(bindingAST);
+
+        assert(bindingAST.body.length > 0, 'Please, provide a value to bind')
+        assert(bindingAST.body.length >= 1, 'Sorry, start another binding for multiple values')
+        assert(bindingAST.body[0].type === 'ExpressionStatement', 'Sorry, bindings can only be for variables')
+        assert(bindingAST.body[0].expression.type === 'Identifier', 'Sorry, bindings can only be for variables')
+
+        this.lexemes[this.lexemes.length - 1].value = bindingAST.body[0].expression.name
+
+        this.binding = false
+        this.bindingStartedAt = -1
+      }
 
       this.current = this.next()
     }
