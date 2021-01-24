@@ -2,7 +2,7 @@ const Parser = require('../../../../src/compiler/parser/text.js')
 
 test('[BINDING] Tokenize binding with one word binding', () => {
   const text = '{binding}'
-  const expected = { type: 'binding', value: 'binding', where: 0 }
+  const expected = { type: 'binding', value: 'binding', where: 0, ended: true }
 
   const GenericParser = new Parser(text)
   GenericParser.parse()
@@ -15,7 +15,7 @@ test('[BINDING] Tokenize binding with one word binding', () => {
 
 test('[BINDING] Tokenize binding with one word binding and spaces', () => {
   const text = '{ binding }'
-  const expected = { type: 'binding', value: 'binding', where: 0 }
+  const expected = { type: 'binding', value: 'binding', where: 0, ended: true }
 
   const GenericParser = new Parser(text)
   GenericParser.parse()

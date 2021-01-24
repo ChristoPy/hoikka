@@ -32,17 +32,27 @@ class TextParser extends Parser {
       }
 
       if (this.current === '<') { }
-      if (this.binding && this.current !== '}') {}
-      if (this.current !== '{' && this.current !== '}') {
+      if (this.binding && this.current !== '}') {
+        this.lexemes[this.lexemes.length - 1].value += this.current
+      }
+      if (this.current !== '{' && this.current !== '}' && !this.binding) {
         const lastToken = this.getLastToken()
         const hasWhiteSpaceToInsert = lastToken && lastToken.where === this.cursor - 1
         const configuredValue = hasWhiteSpaceToInsert ? ` ${this.current}` : this.current
         const configuredWhere = hasWhiteSpaceToInsert ? this.cursor - 1 : this.cursor
 
+        const lastLexeme = this.lexemes[this.lexemes.length - 1]
+        const lastLexemeIsBinding = lastLexeme && lastLexeme.type === 'binding'
+        const lastLexemeIsWritable = lastLexemeIsBinding && lastLexeme.writable
+
         if (!this.lexemes.length) {
           this.lexemes.push({ type: 'text', value: configuredValue, where: configuredWhere })
         } else {
-          this.lexemes[this.lexemes.length - 1].value += configuredValue
+          if (lastLexeme.type === 'text' || lastLexemeIsWritable) {
+            this.lexemes[this.lexemes.length - 1].value += configuredValue
+          } else {
+            this.lexemes.push({ type: 'text', value: configuredValue, where: configuredWhere })
+          }
         }
       }
       if (this.current === '{') {
@@ -51,7 +61,7 @@ class TextParser extends Parser {
         this.binding = true
         this.bindingStartedAt = this.cursor
 
-        this.lexemes.push({ type: 'binding', value: '', where: this.cursor })
+        this.lexemes.push({ type: 'binding', value: '', where: this.cursor, ended: false })
       }
       if (this.current === '}') {
         if (!this.binding) return
@@ -60,14 +70,16 @@ class TextParser extends Parser {
           sourceType: 'module',
         })
 
-        // console.log(bindingAST);
-
         assert(bindingAST.body.length > 0, 'Please, provide a value to bind')
         assert(bindingAST.body.length === 1, 'Sorry, start another binding for multiple values')
         assert(bindingAST.body[0].type === 'ExpressionStatement', 'Sorry, bindings can only be for variables')
         assert(bindingAST.body[0].expression.type === 'Identifier', 'Sorry, bindings can only be for variables')
 
-        this.lexemes[this.lexemes.length - 1].value = bindingAST.body[0].expression.name
+        this.lexemes[this.lexemes.length - 1] = {
+          ...this.lexemes[this.lexemes.length - 1],
+          value: bindingAST.body[0].expression.name,
+          ended: true,
+        }
 
         this.binding = false
         this.bindingStartedAt = -1
