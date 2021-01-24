@@ -58,3 +58,36 @@ test('[WRONG BINDING] Raise exception for a wrong expression', () => {
 
   expect(parse).toThrow(/Unexpected token/)
 })
+
+test('[WRONG BINDING] Raise exception for not closed binding', () => {
+  const text = '{ userName'
+  const GenericParser = new Parser(text)
+
+  const parse = () => {
+    GenericParser.parse()
+  }
+
+  expect(parse).toThrow('Binding not ended')
+})
+
+test('[WRONG BINDING] Raise exception for a binding two variables', () => {
+  const text = '{ userName; userId }'
+  const GenericParser = new Parser(text)
+
+  const parse = () => {
+    GenericParser.parse()
+  }
+
+  expect(parse).toThrow('Sorry, start another binding for multiple values')
+})
+
+test('[WRONG BINDING] Raise exception for a binding inside another', () => {
+  const text = '{ userName {userId} }'
+  const GenericParser = new Parser(text)
+
+  const parse = () => {
+    GenericParser.parse()
+  }
+
+  expect(parse).toThrow('Sorry, bindings can only occur once')
+})

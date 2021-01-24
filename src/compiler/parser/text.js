@@ -63,7 +63,7 @@ class TextParser extends Parser {
         // console.log(bindingAST);
 
         assert(bindingAST.body.length > 0, 'Please, provide a value to bind')
-        assert(bindingAST.body.length >= 1, 'Sorry, start another binding for multiple values')
+        assert(bindingAST.body.length === 1, 'Sorry, start another binding for multiple values')
         assert(bindingAST.body[0].type === 'ExpressionStatement', 'Sorry, bindings can only be for variables')
         assert(bindingAST.body[0].expression.type === 'Identifier', 'Sorry, bindings can only be for variables')
 
