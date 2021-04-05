@@ -34,7 +34,7 @@ class TagParser extends Parser {
         break
       }
 
-      if (!this.contentStarted && !this.insideParameters && this.current.match(/[a-zA-Z]/) && !isTagCloser(next)) {
+      if (!this.contentStarted && !this.insideParameters && this.current.match(/[a-zA-Z]/) && !isTagCloser(this.current)) {
         this.insideParameters = true
         this.insideParametersAt = this.cursor - 1
       }
@@ -42,16 +42,24 @@ class TagParser extends Parser {
       assert(this.current !== '<', 'Tag already started')
 
       if (this.current === '/') {
+        assert(this.startedClosing === false, 'Invalid syntax')
+
         this.startedClosing = true
         this.startedClosingAt = this.cursor
+
+        this.closing = initialCursor === this.cursor - 1
+
+        assert(isTagName(this.name), 'Invalid tag name')
+        continue
       }
       if (this.current === '>') {
-        if (this.startedClosing) {
+        assert(isTagName(this.name), 'Invalid tag name')
+
+        if (this.startedClosing && !this.closing) {
           assert(this.startedClosingAt === this.cursor - 1, 'Tag not closed properly')
           this.selfClosing = true
-          this.startedClosing = false
-          this.startedClosingAt = -1
         }
+        break
       }
 
       if (this.contentStarted) {
