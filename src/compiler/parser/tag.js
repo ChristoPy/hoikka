@@ -83,7 +83,6 @@ class TagParser extends Parser {
         continue
       }
 
-      // prevent not closing parameter before close a tag
       if (this.current === '/') {
         assert(this.startedClosing === false, 'Invalid syntax')
 
@@ -104,10 +103,6 @@ class TagParser extends Parser {
         }
         break
       }
-      else {}
-      // parse with name and no parameters
-      // parse / with name and no parameters
-      // parse tag name with parameters
     }
     assert(!this.currentParameter.length, 'Parameter not closed properly')
   }
