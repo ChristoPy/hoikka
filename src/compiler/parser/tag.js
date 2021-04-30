@@ -1,4 +1,4 @@
-const { assert, isTagCloser, isTagName } = require('../../utils/index.js')
+const { assert, isTagCloser, isTagName, isValidName } = require('../../utils/index.js')
 const Parser = require('./parser.js')
 
 class TagParser extends Parser {
@@ -11,8 +11,13 @@ class TagParser extends Parser {
     this.insideParameters = false
     this.insideParametersAt = -1
 
+    this.parameterValueStarted = false
+    this.parameterValueStartedAt = -1
+
     this.startedClosing = false
     this.startedClosingAt = -1
+
+    this.currentParameter = ''
 
     this.selfClosing = false
     this.closing = false
@@ -41,6 +46,44 @@ class TagParser extends Parser {
 
       assert(this.current !== '<', 'Tag already started')
 
+      if (this.contentStarted && !this.insideParameters) {
+        if (isValidName(this.current, this.name)) {
+          this.name += this.current
+          continue
+        }
+        this.contentStarted = false
+        assert(isTagName(this.name), 'Invalid tag name')
+      }
+
+      if (this.insideParameters) {
+        if (isValidName(this.current, this.currentParameter) && !this.parameterValueStarted) {
+          this.currentParameter += this.current
+          continue
+        }
+
+        if (this.current === "=" && !this.parameterValueStarted) {
+          this.parameterValueStarted = true
+          this.parameterValueStartedAt = this.cursor
+
+          if (this.parameters[this.currentParameter]) this.parameters[this.currentParameter] = ''
+          continue
+        }
+
+        if (!this.parameters[this.currentParameter] && this.currentParameter) this.parameters[this.currentParameter] = ''
+      
+        if (this.parameterValueStarted && this.parameterValueStartedAt) {
+          if (this.current !== "\"") this.parameters[this.currentParameter] += this.current
+          if (this.current === "\"" && this.parameterValueStartedAt < this.cursor -1) {
+            this.parameterValueStarted = false
+            this.parameterValueStartedAt = -1
+            this.currentParameter = ''
+            continue
+          }
+        }
+        continue
+      }
+
+      // prevent not closing parameter before close a tag
       if (this.current === '/') {
         assert(this.startedClosing === false, 'Invalid syntax')
 
@@ -61,24 +104,12 @@ class TagParser extends Parser {
         }
         break
       }
-
-      if (this.contentStarted) {
-        const currentIsValid = this.current.match(/[a-zA-Z]/)
-        const nameIsValid = this.name.length >= 1 && this.current === '-'
-
-        if (currentIsValid || nameIsValid) {
-          this.name += this.current
-          continue
-        }
-        this.contentStarted = false
-        assert(isTagName(this.name), 'Invalid tag name')
-      }
-      else if (this.insideParameters) {}
       else {}
       // parse with name and no parameters
       // parse / with name and no parameters
       // parse tag name with parameters
     }
+    assert(!this.currentParameter.length, 'Parameter not closed properly')
   }
 }
 

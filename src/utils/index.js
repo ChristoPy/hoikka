@@ -21,6 +21,16 @@ const isIgnorable = (token) => isCodeFormat(token) || isWhiteSpace(token)
 const isTagCloser = (token) => TAG_CLOSER.includes(token)
 const isTagName = (value) => testRegex(value, TAG_NAME)
 
+const isValidName = (current, name) => {
+  const currentIsValid = current.match(/[a-zA-Z]/)
+  const nameIsValid = name.length >= 1 && current === '-'
+
+  return currentIsValid || nameIsValid
+}
+
+
+
+
 module.exports = {
   assert,
   isCodeFormat,
@@ -28,4 +38,5 @@ module.exports = {
   isIgnorable,
   isTagCloser,
   isTagName,
+  isValidName,
 }
